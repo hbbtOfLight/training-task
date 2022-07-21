@@ -8,7 +8,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 
 add_executable(try_to_start main.cpp)
-add_executable(cmp compare_test.cpp)
 #set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs)
 target_link_libraries(try_to_start ${OpenCV_LIBRARIES})
-target_link_libraries(cmp ${OpenCV_LIBRARIES})
+

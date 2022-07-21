@@ -15,8 +15,7 @@
 					"source" : ".",
 					"targetIndexes" : 
 					[
-						0,
-						1
+						0
 					]
 				}
 			],
@@ -31,8 +30,7 @@
 					"name" : "try_to_start",
 					"targetIndexes" : 
 					[
-						0,
-						1
+						0
 					]
 				}
 			],
@@ -40,15 +38,8 @@
 			[
 				{
 					"directoryIndex" : 0,
-					"id" : "cmp::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-cmp-Debug-3d45eec7a16d0fad4fb6.json",
-					"name" : "cmp",
-					"projectIndex" : 0
-				},
-				{
-					"directoryIndex" : 0,
 					"id" : "try_to_start::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-try_to_start-Debug-4786ebf4b8ba22846e43.json",
+					"jsonFile" : "target-try_to_start-Debug-96692390514247d8e9fa.json",
 					"name" : "try_to_start",
 					"projectIndex" : 0
 				}
