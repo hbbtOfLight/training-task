@@ -171,8 +171,6 @@ std::vector<cv::Scalar> getColors(const DSU& color_dsu) {
   return colors;
 }
 void processImage(cv::Mat& input) {
-  cv::namedWindow("gray", cv::WINDOW_NORMAL);
-
   std::vector<std::vector<cv::Point>> contours;
   cv::Mat src_gray;
   cv::cvtColor(input, src_gray, cv::COLOR_BGR2GRAY);

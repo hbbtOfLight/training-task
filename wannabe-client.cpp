@@ -11,7 +11,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
-void saveToFileSystem(std::vector<char>& byte_data, const std::string& path) {
+void saveToFileSystem(std::vector<uchar>& byte_data, const std::string& path) {
   std::cout << "called!\n";
   std::cout << byte_data.size() << '\n';
   cv::Mat frombytes_mat = cv::imdecode(cv::Mat(1, byte_data.size(), CV_8UC1, byte_data.data()), cv::IMREAD_UNCHANGED);
@@ -22,6 +22,12 @@ void saveToFileSystem(std::vector<char>& byte_data, const std::string& path) {
   if (frombytes_mat.rows != 0) {
     cv::imwrite(path, frombytes_mat);
   }
+}
+
+std::vector<uchar> getJpegEncodedImage(cv::Mat& imgmat) {
+  std::vector<uchar> encoded;
+  cv::imencode(".jpg", imgmat, encoded);
+  return encoded;
 }
 
 class MyDeliveryCallback : public RdKafka::DeliveryReportCb {
@@ -60,14 +66,13 @@ void processResponce(RdKafka::Message* msg) {
     }
     std::cout << "Consumed " << msg->len() << " bytes. Starting processing\n";
    /// std::cout << static_cast<const char*>(msg->payload());
-   std::vector<char> uchared_msg(msg->len());
-   char* buffer = (char*)(msg->payload());
+   std::vector<uchar> uchared_msg(msg->len());
+   uchar* buffer = (uchar*)(msg->payload());
    for (int i = 0; i < uchared_msg.size(); ++i) {
      uchared_msg[i] = buffer[i];
-     std::cout << uchared_msg[i];
    }
-   std::cout << "\n";
     std::string msg_timestamp = std::to_string(msg->timestamp().timestamp);
+    ////TODO + -> path
     saveToFileSystem(uchared_msg, "../img/image-" + msg_timestamp + ".jpg");
     std::cout << "Processed!" << std::endl;
   }
@@ -94,6 +99,9 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
       producer->poll(0);
       continue;
     }
+    cv::Mat image_mat = cv::imread(filepath);
+    auto encoded_vector = getJpegEncodedImage(image_mat);
+
     int* curr_msg_id = new int(msg_id++);
     RdKafka::Headers::Header h("msg_id", curr_msg_id, sizeof(msg_id));
     RdKafka::Headers* msg_headers = RdKafka::Headers::create();
@@ -102,8 +110,8 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
       err = producer->produce(topic,
                               RdKafka::Topic::PARTITION_UA,
                               RdKafka::Producer::RK_MSG_COPY,
-                              const_cast<char*> (filepath.c_str()),
-                              filepath.size(),
+                              const_cast<uchar*> (encoded_vector.data()),
+                              encoded_vector.size() * sizeof(uchar),
                               nullptr,
                               0,
                               std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()),
