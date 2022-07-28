@@ -11,6 +11,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
+using namespace std::chrono_literals;
+
 void saveToFileSystem(std::vector<uchar>& byte_data, const std::string& path) {
   std::cout << "called!\n";
   std::cout << byte_data.size() << '\n';
@@ -87,6 +89,11 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
     end = true;
     return;
   }
+  RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
+  RdKafka::Topic* processed_topic = RdKafka::Topic::create(producer, "folder12-processed", topic_conf, error);
+  if (!processed_topic) {
+    std::cerr << error << "\n";
+  }
   std::string filepath;
   int msg_id = 0;
 
@@ -146,6 +153,7 @@ void KafkaConsumerThread(bool& end, RdKafka::Conf* configure_consumer, const std
     delete cons;
     return;
   }
+
   cons->subscribe(topic_names);
   while (!end) {
     RdKafka::Message* msg = cons->consume(1000);
@@ -179,9 +187,10 @@ int main() {
   }
 ////configure that????!!! From what?
   bool end = false;
-  std::thread prod_thread(&KafkaProducerThread, std::ref(end), producer_config, "folder1");
-  std::vector<std::string> topics = {"folder2"};
+  std::thread prod_thread(&KafkaProducerThread, std::ref(end), producer_config, "folder12");
 
+  std::vector<std::string> topics = {"folder12-processed"};
+  std::this_thread::sleep_for(1000ms);
   std::thread cons_thread(&KafkaConsumerThread, std::ref(end), consumer_config, topics);
   cons_thread.join();
   prod_thread.join();

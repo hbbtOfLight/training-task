@@ -100,9 +100,9 @@ void matchAndDraw(std::vector<cv::Mat>& examples,
 }
 
 DSU getColorDSU(std::vector<cv::Mat>& shapes,
-                double max_dist1 = 0.001,
+                double max_dist1 = 0.0015,
                 double max_dist2 = 0.05,
-                double max_dist3 = 0.001) {
+                double max_dist3 = 0.002) {
   cv::Mat compare_shape1, compare_shape2;
   DSU color_matches(shapes.size());
   for (int i = 0; i < shapes.size(); ++i) {
@@ -281,21 +281,69 @@ std::string getReturnMsg() {
 
 }
 
+void writeFile() {
+  cv::FileStorage fs("../config1.yaml", cv::FileStorage::WRITE);
+  fs << "producer";
+  fs << "{" << "bootstrap-servers" << "localhost";
+  fs << "message-max-bytes" << 1000000000 << "}";
+  fs.release();
+}
+
+bool getConfigFromFile(RdKafka::Conf* configuration, const std::string& filepath, const std::string& key) {
+  cv::FileStorage fs(filepath, cv::FileStorage::READ);
+  if (!fs.isOpened()) {
+   std::cerr << "Cannot open config file!";
+   return false;
+  }
+  cv::FileNode producer_node = fs[key];
+  std::string error;
+  for (cv::FileNode n : producer_node) {
+    std::string property = n.name(), value = static_cast<std::string>(producer_node[property]);
+    if (configuration->set(property, value, error) != RdKafka::Conf::CONF_OK) {
+      std::cerr << "Error setting configuration: " << error << "\n";
+    }
+    std::cout << property << ":" << value  << "\n";
+  }
+  return true;
+}
+
+std::unordered_map<std::string, std::string> getTopicMap(const std::string& filepath, std::vector<std::string>& raw_topics) {
+  std::unordered_map<std::string, std::string> topic_map;
+  cv::FileStorage fs (filepath, cv::FileStorage::READ);
+  cv::FileNode topics = fs["topic_map"];
+  for (cv::FileNode topic_node : topics) {
+    std::string consumer_topic = topic_node.name(), producer_topic = static_cast<std::string>(topics[consumer_topic]);
+    topic_map[consumer_topic] = producer_topic;
+    raw_topics.emplace_back(consumer_topic);
+    std::cout << consumer_topic << ":" << producer_topic << "\n";
+  }
+  return topic_map;
+}
+
 int main() {
   RdKafka::Conf* producer_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
   RdKafka::Conf* consumer_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
+  //writeFile();
+  if (!getConfigFromFile(producer_conf, "../config.yaml", "producer")) {
+    std::cerr << "Error while reading producer config!\n";
+    exit(1);
+  }
+  if (!getConfigFromFile(consumer_conf, "../config.yaml", "consumer")) {
+    std::cerr << "Error while reading consumer config!\n";
+    exit(1);
+  }
+  std::vector<std::string> raw_topics;
+  auto topic_map = getTopicMap("../config.yaml", raw_topics);
+
+
   std::string err;
   myProduceCallback2 pcb;
-  producer_conf->set("bootstrap.servers", "localhost:9092", err);
-  producer_conf->set("dr_cb", &pcb, err);
-  producer_conf->set("message.max.bytes", "1000000000", err);
-//  producer_conf->set("replica.fetch.max.bytes", "1000000000", err);
-//  producer_conf->set("max.request.size", "1000000000", err);
-  std::cout << err << "\n";
-  consumer_conf->set("bootstrap.servers", "localhost:9092", err);
-  consumer_conf->set("group.id", "12324", err);
-  std::vector<std::string> raw_topics = {"folder1"};
-  std::string processed_topics = "folder2";
+  //producer_conf->set("bootstrap.servers", "localhost:9092", err);
+  //producer_conf->set("dr_cb", &pcb, err);
+  //producer_conf->set("message.max.bytes", "1000000000", err);
+  //std::cout << err << "\n";
+  //consumer_conf->set("bootstrap.servers", "localhost:9092", err);
+  //consumer_conf->set("group.id", "12324", err);
   RdKafka::Producer* producer = RdKafka::Producer::create(producer_conf, err);
   RdKafka::KafkaConsumer* consumer = RdKafka::KafkaConsumer::create(consumer_conf, err);
   consumer->subscribe(raw_topics);
@@ -305,6 +353,7 @@ int main() {
       delete my_msg;
       continue;
     }
+    std::string processed_topics = topic_map[my_msg->topic_name()];
     cv::Mat result;
     std::cout << "Processing..." << std::endl;
     if (!processConsumed(my_msg, result)){

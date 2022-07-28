@@ -1,0 +1,13 @@
+%YAML:1.0
+---
+producer:
+  bootstrap.servers: "localhost:9092"
+  message.max.bytes: "1000000000"
+consumer:
+  bootstrap.servers: "localhost:9092"
+  group.id: "123432"
+
+topic_map:
+  folder11: folder11-processed
+  folder12: folder12-processed
+  folder13: folder13-processed

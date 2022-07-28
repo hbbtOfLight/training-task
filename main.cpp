@@ -93,9 +93,9 @@ void matchAndDraw(std::vector<cv::Mat>& examples,
 }
 
 DSU getColorDSU(std::vector<cv::Mat>& shapes,
-                double max_dist1 = 0.001,
+                double max_dist1 = 0.0015,
                 double max_dist2 = 0.05,
-                double max_dist3 = 0.001) {
+                double max_dist3 = 0.002) {
   cv::Mat compare_shape1, compare_shape2;
   DSU color_matches(shapes.size());
   for (int i = 0; i < shapes.size(); ++i) {
@@ -204,7 +204,7 @@ void processImage(cv::Mat& input) {
 }
 
 int main() {
-  cv::Mat image = cv::imread("../../images_for_study/test3.png", cv::IMREAD_COLOR);
+  cv::Mat image = cv::imread("../../images_for_study/flower.jpg", cv::IMREAD_COLOR);
   processImage(image);
   cv::namedWindow("W", cv::WINDOW_NORMAL);
   cv::imshow("W", image);
