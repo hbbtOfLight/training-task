@@ -1,6 +1,10 @@
 "C:\Program Files\JetBrains\CLion 2020.2.4\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2020.2.4/bin/ninja/win/ninja.exe" -G Ninja -S D:\stazhka_task\clion_proj\try_to_start -B D:\stazhka_task\clion_proj\try_to_start\cmake-build-debug
 -- includes D:/stazhka_task/opencv/opencv/build;D:/stazhka_task/opencv/opencv/include;D:/stazhka_task/opencv/opencv/modules/core/include;D:/stazhka_task/opencv/opencv/modules/imgproc/include;D:/stazhka_task/opencv/opencv/modules/imgcodecs/include;D:/stazhka_task/opencv/opencv/modules/highgui/include 
 opencv_core;opencv_highgui;opencv_imgcodecs;opencv_imgproc
+-- includes 
+ C:/Program Files (x86)/RdKafka/include/librdkafka
+
+ C:/Program Files (x86)/RdKafka/lib/librdkafka++.dll.a
 -- Configuring done
 -- Generating done
 -- Build files have been written to: D:/stazhka_task/clion_proj/try_to_start/cmake-build-debug

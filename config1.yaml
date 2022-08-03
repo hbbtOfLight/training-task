@@ -1,0 +1,5 @@
+%YAML:1.0
+---
+producer:
+   bootstrap-servers: localhost
+   message-max-bytes: 1000000000

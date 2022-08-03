@@ -47,12 +47,12 @@ cmake_ninja_workdir = D$:/stazhka_task/clion_proj/try_to_start/cmake-build-debug
 #############################################
 # Order-only phony target for try_to_start
 
-build cmake_object_order_depends_target_try_to_start: phony || CMakeFiles/try_to_start.dir
+build cmake_object_order_depends_target_try_to_start: phony || cmake_object_order_depends_target_img_func
 
 build CMakeFiles/try_to_start.dir/main.cpp.obj: CXX_COMPILER__try_to_start_Debug D$:/stazhka_task/clion_proj/try_to_start/main.cpp || cmake_object_order_depends_target_try_to_start
   DEP_FILE = CMakeFiles\try_to_start.dir\main.cpp.obj.d
   FLAGS = -g
-  INCLUDES = -isystem D:/stazhka_task/opencv/opencv/build -isystem D:/stazhka_task/opencv/opencv/include -isystem D:/stazhka_task/opencv/opencv/modules/core/include -isystem D:/stazhka_task/opencv/opencv/modules/imgproc/include -isystem D:/stazhka_task/opencv/opencv/modules/imgcodecs/include -isystem D:/stazhka_task/opencv/opencv/modules/highgui/include
+  INCLUDES = -I"C:/Program Files (x86)/RdKafka/include/librdkafka" -ID:/stazhka_task/clion_proj/try_to_start/opencv_functional -isystem D:/stazhka_task/opencv/opencv/build -isystem D:/stazhka_task/opencv/opencv/include -isystem D:/stazhka_task/opencv/opencv/modules/core/include -isystem D:/stazhka_task/opencv/opencv/modules/imgproc/include -isystem D:/stazhka_task/opencv/opencv/modules/imgcodecs/include -isystem D:/stazhka_task/opencv/opencv/modules/highgui/include
   OBJECT_DIR = CMakeFiles\try_to_start.dir
   OBJECT_FILE_DIR = CMakeFiles\try_to_start.dir
 
@@ -64,15 +64,115 @@ build CMakeFiles/try_to_start.dir/main.cpp.obj: CXX_COMPILER__try_to_start_Debug
 #############################################
 # Link the executable try_to_start.exe
 
-build try_to_start.exe: CXX_EXECUTABLE_LINKER__try_to_start_Debug CMakeFiles/try_to_start.dir/main.cpp.obj | D$:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a
+build try_to_start.exe: CXX_EXECUTABLE_LINKER__try_to_start_Debug CMakeFiles/try_to_start.dir/main.cpp.obj | libimg_func.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a || libimg_func.a
   FLAGS = -g
-  LINK_LIBRARIES = D:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = libimg_func.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\try_to_start.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
   TARGET_FILE = try_to_start.exe
   TARGET_IMPLIB = libtry_to_start.dll.a
   TARGET_PDB = try_to_start.exe.dbg
+
+# =============================================================================
+# Object build statements for EXECUTABLE target client
+
+
+#############################################
+# Order-only phony target for client
+
+build cmake_object_order_depends_target_client: phony || CMakeFiles/client.dir
+
+build CMakeFiles/client.dir/wannabe-client.cpp.obj: CXX_COMPILER__client_Debug D$:/stazhka_task/clion_proj/try_to_start/wannabe-client.cpp || cmake_object_order_depends_target_client
+  DEP_FILE = CMakeFiles\client.dir\wannabe-client.cpp.obj.d
+  FLAGS = -g
+  INCLUDES = -I"C:/Program Files (x86)/RdKafka/include/librdkafka" -ID:/stazhka_task/clion_proj/try_to_start/opencv_functional -isystem D:/stazhka_task/opencv/opencv/build -isystem D:/stazhka_task/opencv/opencv/include -isystem D:/stazhka_task/opencv/opencv/modules/core/include -isystem D:/stazhka_task/opencv/opencv/modules/imgproc/include -isystem D:/stazhka_task/opencv/opencv/modules/imgcodecs/include -isystem D:/stazhka_task/opencv/opencv/modules/highgui/include
+  OBJECT_DIR = CMakeFiles\client.dir
+  OBJECT_FILE_DIR = CMakeFiles\client.dir
+
+
+# =============================================================================
+# Link build statements for EXECUTABLE target client
+
+
+#############################################
+# Link the executable client.exe
+
+build client.exe: CXX_EXECUTABLE_LINKER__client_Debug CMakeFiles/client.dir/wannabe-client.cpp.obj | C$:/Program$ Files$ (x86)/RdKafka/lib/librdkafka++.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a
+  FLAGS = -g
+  LINK_LIBRARIES = "C:/Program Files (x86)/RdKafka/lib/librdkafka++.dll.a"  D:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  OBJECT_DIR = CMakeFiles\client.dir
+  POST_BUILD = cd .
+  PRE_LINK = cd .
+  TARGET_FILE = client.exe
+  TARGET_IMPLIB = libclient.dll.a
+  TARGET_PDB = client.exe.dbg
+
+# =============================================================================
+# Object build statements for EXECUTABLE target server
+
+
+#############################################
+# Order-only phony target for server
+
+build cmake_object_order_depends_target_server: phony || CMakeFiles/server.dir
+
+build CMakeFiles/server.dir/wannabe-server.cpp.obj: CXX_COMPILER__server_Debug D$:/stazhka_task/clion_proj/try_to_start/wannabe-server.cpp || cmake_object_order_depends_target_server
+  DEP_FILE = CMakeFiles\server.dir\wannabe-server.cpp.obj.d
+  FLAGS = -g
+  INCLUDES = -I"C:/Program Files (x86)/RdKafka/include/librdkafka" -ID:/stazhka_task/clion_proj/try_to_start/opencv_functional -isystem D:/stazhka_task/opencv/opencv/build -isystem D:/stazhka_task/opencv/opencv/include -isystem D:/stazhka_task/opencv/opencv/modules/core/include -isystem D:/stazhka_task/opencv/opencv/modules/imgproc/include -isystem D:/stazhka_task/opencv/opencv/modules/imgcodecs/include -isystem D:/stazhka_task/opencv/opencv/modules/highgui/include
+  OBJECT_DIR = CMakeFiles\server.dir
+  OBJECT_FILE_DIR = CMakeFiles\server.dir
+
+
+# =============================================================================
+# Link build statements for EXECUTABLE target server
+
+
+#############################################
+# Link the executable server.exe
+
+build server.exe: CXX_EXECUTABLE_LINKER__server_Debug CMakeFiles/server.dir/wannabe-server.cpp.obj | D$:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a C$:/Program$ Files$ (x86)/RdKafka/lib/librdkafka++.dll.a D$:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a
+  FLAGS = -g
+  LINK_LIBRARIES = D:/stazhka_task/opencv/opencv/build/lib/libopencv_highgui460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgcodecs460.dll.a  D:/stazhka_task/opencv/opencv/build/lib/libopencv_imgproc460.dll.a  "C:/Program Files (x86)/RdKafka/lib/librdkafka++.dll.a"  D:/stazhka_task/opencv/opencv/build/lib/libopencv_core460.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  OBJECT_DIR = CMakeFiles\server.dir
+  POST_BUILD = cd .
+  PRE_LINK = cd .
+  TARGET_FILE = server.exe
+  TARGET_IMPLIB = libserver.dll.a
+  TARGET_PDB = server.exe.dbg
+
+# =============================================================================
+# Object build statements for STATIC_LIBRARY target img_func
+
+
+#############################################
+# Order-only phony target for img_func
+
+build cmake_object_order_depends_target_img_func: phony || CMakeFiles/img_func.dir
+
+build CMakeFiles/img_func.dir/opencv_functional/opencv_functional.cpp.obj: CXX_COMPILER__img_func_Debug D$:/stazhka_task/clion_proj/try_to_start/opencv_functional/opencv_functional.cpp || cmake_object_order_depends_target_img_func
+  DEP_FILE = CMakeFiles\img_func.dir\opencv_functional\opencv_functional.cpp.obj.d
+  FLAGS = -g
+  INCLUDES = -I"C:/Program Files (x86)/RdKafka/include/librdkafka" -ID:/stazhka_task/clion_proj/try_to_start/opencv_functional -isystem D:/stazhka_task/opencv/opencv/build -isystem D:/stazhka_task/opencv/opencv/include -isystem D:/stazhka_task/opencv/opencv/modules/core/include -isystem D:/stazhka_task/opencv/opencv/modules/imgproc/include -isystem D:/stazhka_task/opencv/opencv/modules/imgcodecs/include -isystem D:/stazhka_task/opencv/opencv/modules/highgui/include
+  OBJECT_DIR = CMakeFiles\img_func.dir
+  OBJECT_FILE_DIR = CMakeFiles\img_func.dir\opencv_functional
+
+
+# =============================================================================
+# Link build statements for STATIC_LIBRARY target img_func
+
+
+#############################################
+# Link the static library libimg_func.a
+
+build libimg_func.a: CXX_STATIC_LIBRARY_LINKER__img_func_Debug CMakeFiles/img_func.dir/opencv_functional/opencv_functional.cpp.obj
+  LANGUAGE_COMPILE_FLAGS = -g
+  OBJECT_DIR = CMakeFiles\img_func.dir
+  POST_BUILD = cd .
+  PRE_LINK = cd .
+  TARGET_FILE = libimg_func.a
+  TARGET_PDB = img_func.a.dbg
 
 
 #############################################
@@ -100,6 +200,12 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # =============================================================================
 # Target aliases.
 
+build client: phony client.exe
+
+build img_func: phony libimg_func.a
+
+build server: phony server.exe
+
 build try_to_start: phony try_to_start.exe
 
 # =============================================================================
@@ -110,7 +216,7 @@ build try_to_start: phony try_to_start.exe
 #############################################
 # Folder: D:/stazhka_task/clion_proj/try_to_start/cmake-build-debug
 
-build all: phony try_to_start.exe
+build all: phony try_to_start.exe client.exe server.exe libimg_func.a
 
 # =============================================================================
 # Built-in targets

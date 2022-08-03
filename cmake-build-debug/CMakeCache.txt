@@ -233,6 +233,12 @@ CMAKE_STRIP:FILEPATH=C:/Qt/Tools/mingw1120_64/bin/strip.exe
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Path to a file.
+KAFKA_INCLUDE_PATH:PATH=C:/Program Files (x86)/RdKafka/include/librdkafka
+
+//Path to a library.
+KAFKA_LIBRARY:FILEPATH=C:/Program Files (x86)/RdKafka/lib/librdkafka++.dll.a
+
 //The directory containing a CMake configuration file for OpenCV.
 OpenCV_DIR:PATH=D:/stazhka_task/opencv/opencv/build
 

@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.22)
+project(try_to_start)
+set(CMAKE_CXX_STANDARD 17)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_DIRS})
+add_library(img_functional SHARED opencv_functional.cpp opencv_functional.h)
+target_link_libraries(img_functional ${OpenCV_LIBRARIES})
