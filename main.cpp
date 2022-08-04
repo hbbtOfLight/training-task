@@ -11,17 +11,17 @@
 #include "opencv_functional.h"
 
 int main() {
-  cv::Mat image = cv::imread("../../images_for_study/small_shapes.png", cv::IMREAD_COLOR);
-  cv::copyMakeBorder(image, image, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
+  cv::Mat image = cv::imread("../../images_for_study/realpic.jpg", cv::IMREAD_COLOR);
+  //cv::copyMakeBorder(image, image, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
 
   cv::namedWindow("W", cv::WINDOW_NORMAL);
 ////  cv::imshow("W", image);
   processImage(image);
   cv::imshow("W", image);
   cv::waitKey();
-  for (int i = 10; i <= 20; ++i) {
+  for (int i = 1; i <= 20; ++i) {
     cv::Mat image = cv::imread("../../images_for_study/test" + std::to_string(i) + ".png", cv::IMREAD_COLOR);
-    cv::copyMakeBorder(image, image, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
+    //cv::copyMakeBorder(image, image, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
 
 
     processImage(image);

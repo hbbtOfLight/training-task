@@ -10,7 +10,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
-
+#include <filesystem>
 using namespace std::chrono_literals;
 
 void saveToFileSystem(std::vector<uchar>& byte_data, const std::string& path) {
@@ -74,8 +74,11 @@ void processResponce(RdKafka::Message* msg) {
      uchared_msg[i] = buffer[i];
    }
     std::string msg_timestamp = std::to_string(msg->timestamp().timestamp);
-    ////TODO + -> path
-    saveToFileSystem(uchared_msg, "../img/image-" + msg_timestamp + ".jpg");
+    std::filesystem::path p("..");
+    std::string file_name = "image-" + msg_timestamp + ".jpg";
+    p /= "img";
+    p /= file_name;
+    saveToFileSystem(uchared_msg, p.string());
     std::cout << "Processed!" << std::endl;
   }
 }
@@ -89,11 +92,11 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
     end = true;
     return;
   }
-  RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
-  RdKafka::Topic* processed_topic = RdKafka::Topic::create(producer, "folder12-processed", topic_conf, error);
-  if (!processed_topic) {
-    std::cerr << error << "\n";
-  }
+ // RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
+ // RdKafka::Topic* processed_topic = RdKafka::Topic::create(producer, "folder12-processed", topic_conf, error);
+//  if (!processed_topic) {
+//    std::cerr << error << "\n";
+//  }
   std::string filepath;
   int msg_id = 0;
 
@@ -171,7 +174,13 @@ void KafkaConsumerThread(bool& end, RdKafka::Conf* configure_consumer, const std
   }
   delete cons;
 }
-int main() {
+int main(int argc, char** argv) {
+  if (argc < 3) {
+    std::cerr << "Invalid call! Must specify topics for producer and consumer!";
+    return -1;
+  }
+  std::string producer_topic_name = argv[1];
+  std::string consumer_topic_name = argv[2];
   RdKafka::Conf* producer_config = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
   RdKafka::Conf* consumer_config = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
   std::string err;
@@ -180,16 +189,14 @@ int main() {
       producer_config->set("dr_cb", &cb_prod, err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("bootstrap.servers", "localhost:9092", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("group.id", "12321", err) != RdKafka::Conf::CONF_OK ||
-      consumer_config->set("message.max.bytes", "1000000000", err) != RdKafka::Conf::CONF_OK //||
-     /* consumer_config->set("replica.fetch.message.max.bytes", "1000000000", err) != RdKafka::Conf::CONF_OK*/) {
+      consumer_config->set("message.max.bytes", "1000000000", err) != RdKafka::Conf::CONF_OK) {
     std::cerr << "Conf failed! " << err << "\n";
     return 1;
   }
-////configure that????!!! From what?
   bool end = false;
-  std::thread prod_thread(&KafkaProducerThread, std::ref(end), producer_config, "folder12");
+  std::thread prod_thread(&KafkaProducerThread, std::ref(end), producer_config, producer_topic_name);
 
-  std::vector<std::string> topics = {"folder12-processed"};
+  std::vector<std::string> topics = {consumer_topic_name};
   std::this_thread::sleep_for(1000ms);
   std::thread cons_thread(&KafkaConsumerThread, std::ref(end), consumer_config, topics);
   cons_thread.join();

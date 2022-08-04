@@ -21,9 +21,8 @@ target_link_libraries(try_to_start ${OpenCV_LIBRARIES} img_func)
 find_library(KAFKA_LIBRARY rdkafka++ HINTS "C:/Program Files (x86)/RdKafka/lib")
 message(STATUS "includes \n ${KAFKA_INCLUDE_PATH}
 \n ${KAFKA_LIBRARY}" )
-target_link_libraries(client ${KAFKA_LIBRARY})
-target_link_libraries(client ${OpenCV_LIBRARIES})
-target_link_libraries(server ${OpenCV_LIBRARIES})
-target_link_libraries(server ${KAFKA_LIBRARY})
+target_link_libraries(client ${KAFKA_LIBRARY} ${OpenCV_LIBRARIES})
+target_link_libraries(server ${OpenCV_LIBRARIES} ${KAFKA_LIBRARY} img_func)
+
 
 

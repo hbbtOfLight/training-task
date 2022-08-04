@@ -131,10 +131,22 @@ int main() {
   myProduceCallback2 pcb;
   RdKafka::Producer* producer = RdKafka::Producer::create(producer_conf, err);
   RdKafka::KafkaConsumer* consumer = RdKafka::KafkaConsumer::create(consumer_conf, err);
+  if (!producer || !consumer) {
+    std::cerr << "Error creating producer and consumer! " << err << "\n";
+    exit(1);
+  }
+//  std::vector<RdKafka::Topic*> topics(raw_topics.size());
+//  RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
+//  for (int i = 0; i < topics.size(); ++i) {
+//    topics[i] = RdKafka::Topic::create(producer, raw_topics[i], topic_conf, err);
+//  }
+//  for (int i = 0; i < topics.size(); ++i) {
+//    delete topics[i];
+//  }
   consumer->subscribe(raw_topics);
   while (true) {
     RdKafka::Message* my_msg = consumer->consume(1000);
-    if (my_msg->err()) {
+    if (my_msg->err() || my_msg->len() == 0) {
       delete my_msg;
       continue;
     }
@@ -167,8 +179,6 @@ int main() {
       }
       producer->poll(0);
     } while (producer_error == RdKafka::ERR__QUEUE_FULL);
-   // delete my_msg;
-
 
   }
 

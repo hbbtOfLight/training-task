@@ -102,7 +102,6 @@ void matchAndDraw(std::vector<cv::Mat>& examples,
   }
 }
 
-
 std::tuple<double, double, double> getMatch(cv::Mat& shape1, cv::Mat& shape2) {
   double dist1 = cv::matchShapes(shape1, shape2, cv::CONTOURS_MATCH_I1, 0);
   double dist2 = cv::matchShapes(shape1, shape2, cv::CONTOURS_MATCH_I2, 0);
@@ -110,10 +109,14 @@ std::tuple<double, double, double> getMatch(cv::Mat& shape1, cv::Mat& shape2) {
   return {dist1, dist2, dist3};
 }
 
-bool checkMatch(const std::tuple<double, double, double>& dists, double max_dist1 = 0.006, double max_dist2 = 0.05, double max_dist3 = 0.009) {
-  auto&[dist1, dist2, dist3] = dists;
+bool checkMatch(const std::tuple<double, double, double>& dists,
+                double max_dist1 = 0.006,
+                double max_dist2 = 0.05,
+                double max_dist3 = 0.009) {
+  auto& [dist1, dist2, dist3] = dists;
   std::cout << dist1 << " " << dist2 << " " << dist3 << " " << "\n";
-  return dist2 <= max_dist2 && dist1 <= max_dist1 || dist1 <= max_dist2 && dist3 <= max_dist3 || dist2 <= max_dist1 && dist3 <= max_dist3;
+  return dist2 <= max_dist2 && dist1 <= max_dist1 || dist1 <= max_dist2 && dist3 <= max_dist3
+      || dist2 <= max_dist1 && dist3 <= max_dist3;
 }
 
 void drawAllContours(cv::Mat& img, const std::vector<std::vector<cv::Point>> contours) {
@@ -128,7 +131,6 @@ void getMask(cv::Mat& img, cv::Mat& mask) {
   std::vector<uchar> upper = {179, 255, 255};
   cv::inRange(mask, lower, upper, mask);
 }
-
 
 std::pair<double, double> compareHistogram(cv::Mat& img1, cv::Mat& img2) {
   cv::Mat mask1, mask2;
@@ -150,7 +152,6 @@ std::pair<double, double> compareHistogram(cv::Mat& img1, cv::Mat& img2) {
   //cv::waitKey();
   return {cv::compareHist(hist1, hist2, cv::HISTCMP_CORREL), cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA)};
 }
-
 
 DSU getColorDSU(std::vector<cv::Mat>& shapes, std::vector<cv::Mat>& colored,
                 double max_dist1 = 0.006,
@@ -198,19 +199,21 @@ DSU getColorDSU(std::vector<cv::Mat>& shapes, std::vector<cv::Mat>& colored,
 //      cv::imshow("wi", c_shape1);
 //      cv::imshow("wj", c_shape2);
 //      cv::waitKey();
- //     auto dists = getMatch(c_shape1, c_shape2);
-      cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(std::max(compare_shape1.cols/32, 5), std::max(compare_shape1.rows/32, 5)));
+      //     auto dists = getMatch(c_shape1, c_shape2);
+      cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,
+                                                 cv::Size(std::max(compare_shape1.cols / 32, 5),
+                                                          std::max(compare_shape1.rows / 32, 5)));
       cv::morphologyEx(thresholded1, thresholded1, cv::MORPH_OPEN, kernel);
       cv::morphologyEx(thresholded2, thresholded2, cv::MORPH_OPEN, kernel);
       cv::morphologyEx(thresholded1, thresholded1, cv::MORPH_CLOSE, kernel);
       cv::morphologyEx(thresholded2, thresholded2, cv::MORPH_CLOSE, kernel);
 //      cv::imshow("wi", thresholded1);
 //      cv::imshow("wj", thresholded2);
-   //   cv::waitKey();
+      //   cv::waitKey();
       auto dists = getMatch(thresholded1, thresholded2);
-      if (checkMatch(dists,  max_dist1 * 2, max_dist2 * 2, max_dist3 * 2)) {
+      if (checkMatch(dists, max_dist1 * 2, max_dist2 * 2, max_dist3 * 2)) {
         auto [c_hist_corr, c_hist_inter] = compareHistogram(colored[i], colored[j]);
-        std::cout << "HISTOGRAM: " << c_hist_corr << " " << c_hist_inter <<  "\n";
+        std::cout << "HISTOGRAM: " << c_hist_corr << " " << c_hist_inter << "\n";
         if (c_hist_corr >= 0.6 && c_hist_inter <= 0.7) {
           color_matches.Merge(i, j);
         }
@@ -270,28 +273,36 @@ std::vector<cv::Scalar> getColors(const DSU& color_dsu) {
 void processImage(cv::Mat& input) {
   std::vector<std::vector<cv::Point>> contours;
   cv::Mat src_gray;
+  cv::floodFill(input,
+                cv::Point(10, 10),
+                cv::Scalar(255, 255, 255),
+                nullptr,
+                cv::Scalar(5, 5, 5),
+                cv::Scalar(5, 5, 5));
   cv::cvtColor(input, src_gray, cv::COLOR_BGR2GRAY);
   cv::Mat grayscaled_copy = src_gray.clone();
   cv::threshold(src_gray, src_gray, 240, 255, cv::THRESH_BINARY);
   cv::Mat canny_out;
   //cv::GaussianBlur(src_gray, src_gray, cv::Size(3, 3), 0, 0);
- // cv::erode(src_gray, src_gray, cv::MORPH_ELLIPSE);
+  // cv::erode(src_gray, src_gray, cv::MORPH_ELLIPSE);
   cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
   cv::morphologyEx(src_gray, src_gray, cv::MORPH_OPEN, kernel);
   cv::morphologyEx(src_gray, src_gray, cv::MORPH_CLOSE, kernel);
+  cv::copyMakeBorder(input, input, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
   cv::copyMakeBorder(src_gray, src_gray, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
   cv::copyMakeBorder(grayscaled_copy, grayscaled_copy, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
-  cv::copyMakeBorder(input, input, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
+
 //
 //  cv::Canny(src_gray, canny_out, 0, 200);
-//  cv::namedWindow("W1", cv::WINDOW_NORMAL);
-//  cv::namedWindow("W2", cv::WINDOW_NORMAL);
-//  cv::imshow("W1", src_gray);
-//  cv::imshow("W2", canny_out);
-//  cv::waitKey();
+  cv::namedWindow("W1", cv::WINDOW_NORMAL);
+  // cv::namedWindow("W2", cv::WINDOW_NORMAL);
+  cv::imshow("W1", src_gray);
+  // cv::imshow("W2", canny_out);
+  cv::waitKey();
   cv::findContours(src_gray, contours, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
   cv::Scalar color = cv::Scalar(255, 0, 0);
   std::vector<cv::Rect> bounds(contours.size());
+
   for (size_t i = 0; i < contours.size(); ++i) {
     bounds[i] = cv::boundingRect(contours[i]);
   }
@@ -311,6 +322,9 @@ void processImage(cv::Mat& input) {
     return;
   }
   for (int i = images_on_white[0].size == input.size ? 1 : 0; i < images_on_white.size(); ++i) {
+    if (bounds[i].br().x >= images_on_white[i].cols || bounds[i].br().y >= images_on_white[i].rows) {
+      std::cerr << "MORE!";
+    }
     images_on_white[i] = grayscaled_copy(bounds[i]);
     colored_images[i] = input(bounds[i]);
   }
