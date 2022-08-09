@@ -11,7 +11,7 @@
 #include "opencv_functional.h"
 
 int main() {
-  cv::Mat image = cv::imread("../../images_for_study/realpic.jpg", cv::IMREAD_COLOR);
+  cv::Mat image = cv::imread("../../images_for_study/my_ph.jpg", cv::IMREAD_COLOR);
   //cv::copyMakeBorder(image, image, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
 
   cv::namedWindow("W", cv::WINDOW_NORMAL);

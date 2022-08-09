@@ -2,12 +2,17 @@
 ---
 producer:
   bootstrap.servers: "localhost:9092"
-  message.max.bytes: "1000000000"
+  message.max.bytes: "999999999"
 consumer:
   bootstrap.servers: "localhost:9092"
-  group.id: "123432"
+  group.id: "2"
+  fetch.message.max.bytes: "999999999"
+  max.partition.fetch.bytes: "999999999"
+  receive.message.max.bytes: "999999999"
+
 
 topic_map:
   folder11: folder11-processed
   folder12: folder12-processed
   folder13: folder13-processed
+  folder14: folder14-processed

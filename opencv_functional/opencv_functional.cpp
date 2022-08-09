@@ -97,7 +97,7 @@ void matchAndDraw(std::vector<cv::Mat>& examples,
                   cv::Mat grayscaled,
                   const std::vector<cv::Scalar>& colors) {
   for (int i = 0; i < examples.size(); ++i) {
-    if (getMatrixMin(examples[i]) < 250)
+    if (getMatrixMin(examples[i]) < 240)
       matchOnePictureToMany(examples[i], grayscaled, input, colors[i]);
   }
 }
@@ -270,6 +270,12 @@ std::vector<cv::Scalar> getColors(const DSU& color_dsu) {
   }
   return colors;
 }
+////TODO: переписать функцию вот совсем вообще
+void processImV2(cv::Mat& input) {
+  cv::Mat hsv_input;
+  cv::cvtColor(input, hsv_input, cv::COLOR_RGB2HSV);
+}
+
 void processImage(cv::Mat& input) {
   std::vector<std::vector<cv::Point>> contours;
   cv::Mat src_gray;
@@ -286,6 +292,8 @@ void processImage(cv::Mat& input) {
   //cv::GaussianBlur(src_gray, src_gray, cv::Size(3, 3), 0, 0);
   // cv::erode(src_gray, src_gray, cv::MORPH_ELLIPSE);
   cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
+  cv::morphologyEx(input, input, cv::MORPH_OPEN, kernel);
+  cv::morphologyEx(input, input, cv::MORPH_CLOSE, kernel);
   cv::morphologyEx(src_gray, src_gray, cv::MORPH_OPEN, kernel);
   cv::morphologyEx(src_gray, src_gray, cv::MORPH_CLOSE, kernel);
   cv::copyMakeBorder(input, input, 1, 1, 1, 1, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
@@ -301,20 +309,47 @@ void processImage(cv::Mat& input) {
   cv::waitKey();
   cv::findContours(src_gray, contours, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
   cv::Scalar color = cv::Scalar(255, 0, 0);
-  std::vector<cv::Rect> bounds(contours.size());
 
+  std::vector<cv::RotatedRect> min_enclosing(contours.size());
   for (size_t i = 0; i < contours.size(); ++i) {
-    bounds[i] = cv::boundingRect(contours[i]);
+    // bounds[i] = cv::boundingRect(contours[i]);
+    min_enclosing[i] = cv::minAreaRect(contours[i]);
   }
-  bounds.erase(std::unique(bounds.begin(), bounds.end(), [](const cv::Rect& p1, const cv::Rect& p2) {
-    return cv::norm(p1.tl() - p2.tl()) + cv::norm(p1.br() - p2.br()) <= 20;
-  }), bounds.end());
-  bounds.erase(std::remove_if(bounds.begin(),
-                              bounds.end(),
-                              [matsize = cv::Point(grayscaled_copy.size())](const cv::Rect& r) {
-                                return cv::norm(r.tl()) + cv::norm(r.br() - matsize) < 50 || rectSquare(r) < 100;
-                              }), bounds.end());
-  bounds = getRectanglesWithoutInside(bounds);
+  std::vector<cv::Point2f> intersection_rotated;
+  min_enclosing.erase(std::remove_if(min_enclosing.begin(),
+                                     min_enclosing.end(),
+                                     [&input](const cv::RotatedRect& r) {
+                                       return r.size.area() >= 0.9 * input.rows * input.cols ||
+                                       r.center.x >= input.cols - 20 || r.center.y >= input.rows - 20 || r.size.area() <= 200;
+                                     }), min_enclosing.end());
+  min_enclosing.erase(std::unique(min_enclosing.begin(),
+                                  min_enclosing.end(),
+                                  [&intersection_rotated](const cv::RotatedRect& r1,
+                                                          const cv::RotatedRect& r2) {
+                                    return cv::rotatedRectangleIntersection(r1, r2, intersection_rotated)
+                                        != cv::INTERSECT_NONE;
+                                  }), min_enclosing.end());
+  std::vector<cv::Rect> bounds(min_enclosing.size());
+  for (int i = 0; i < min_enclosing.size(); ++i) {
+    bounds[i] = min_enclosing[i].boundingRect();
+    int x0 = bounds[i].tl().x, y0 = bounds[i].tl().y, x1 = bounds[i].br().x, y1 = bounds[i].br().y;
+    x0 = std::max(0, x0);
+    y0 = std::max(0, y0);
+    x1 = std::min(input.cols - 1, x1);
+    y1 = std::min(input.rows - 1, y1);
+    bounds[i] = cv::Rect(cv::Point(x0, y0), cv::Point(x1, y1));
+    // bounds[i].br().x = std::min(bounds[i].br().x, input.cols);
+  }
+  //bounds.erase(std::unique(bounds.begin(), bounds.end(), [](const cv::Rect& p1, const cv::Rect& p2) {
+  //  return cv::norm(p1.tl() - p2.tl()) + cv::norm(p1.br() - p2.br()) <= 20;
+  // }), bounds.end());
+//  bounds.erase(std::remove_if(bounds.begin(),
+//                              bounds.end(),
+//                              [matsize = cv::Point(grayscaled_copy.size())](const cv::Rect& r) {
+//                                return cv::norm(r.tl()) + cv::norm(r.br() - matsize) < 50 || rectSquare(r) < 100;
+//                              }), bounds.end());
+//  bounds = getRectanglesWithoutInside(bounds);
+
   std::vector<cv::Mat> images_on_white(bounds.size());
   std::vector<cv::Mat> colored_images(bounds.size());
   if (images_on_white.empty()) {
@@ -322,8 +357,10 @@ void processImage(cv::Mat& input) {
     return;
   }
   for (int i = images_on_white[0].size == input.size ? 1 : 0; i < images_on_white.size(); ++i) {
-    if (bounds[i].br().x >= images_on_white[i].cols || bounds[i].br().y >= images_on_white[i].rows) {
-      std::cerr << "MORE!";
+    if (bounds[i].br().x >= input.cols || bounds[i].br().y >= input.rows) {
+      std::cerr << "MORE!" << bounds[i].br().x << " " << bounds[i].br().y << " " << i << "\n"
+      << input.size << "\n";
+      continue;
     }
     images_on_white[i] = grayscaled_copy(bounds[i]);
     colored_images[i] = input(bounds[i]);

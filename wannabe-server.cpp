@@ -12,7 +12,7 @@
 #include <opencv2/imgproc.hpp>
 #include <random>
 
-#include "opencv_functional.h"
+#include "opencv_functional_v2.h"
 
 
 void fetchImage(uchar* data_start, std::size_t size, cv::Mat& dest) {

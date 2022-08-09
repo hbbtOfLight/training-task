@@ -18,9 +18,9 @@ void saveToFileSystem(std::vector<uchar>& byte_data, const std::string& path) {
   std::cout << byte_data.size() << '\n';
   cv::Mat frombytes_mat = cv::imdecode(cv::Mat(1, byte_data.size(), CV_8UC1, byte_data.data()), cv::IMREAD_UNCHANGED);
   std::cout << frombytes_mat.size << "\n";
-  cv::namedWindow("window", cv::WINDOW_NORMAL);
-  cv::imshow("window", frombytes_mat);
-  cv::waitKey();
+  //cv::namedWindow("window", cv::WINDOW_NORMAL);
+  //cv::imshow("window", frombytes_mat);
+  //cv::waitKey();
   if (frombytes_mat.rows != 0) {
     cv::imwrite(path, frombytes_mat);
   }
@@ -92,8 +92,13 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
     end = true;
     return;
   }
- // RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
- // RdKafka::Topic* processed_topic = RdKafka::Topic::create(producer, "folder12-processed", topic_conf, error);
+//  RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
+//  if (topic_conf->set("max.message.bytes", "16994630", error) != RdKafka::Conf::CONF_OK) {
+//    std::cout << error << "!!!!!!!!!!!!!!!!\n";
+//  }
+
+//  RdKafka::Topic* processed_topic = RdKafka::Topic::create(producer, "folder14", topic_conf, error);
+  //RdKafka::Topic* processed_topic = RdKafka::Topic::create(producer, "folder14", topic_conf, error);
 //  if (!processed_topic) {
 //    std::cerr << error << "\n";
 //  }
@@ -102,8 +107,6 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
 
   while (!end) {
     getline(std::cin, filepath);
-    //process file I don't understand how yet
-
     RdKafka::ErrorCode err;
     if (filepath.empty()) {
       producer->poll(0);
@@ -111,7 +114,7 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
     }
     cv::Mat image_mat = cv::imread(filepath);
     auto encoded_vector = getJpegEncodedImage(image_mat);
-
+    std::cout << "Encoded matrix, img_size: " << encoded_vector.size() << "\n";
     int* curr_msg_id = new int(msg_id++);
     RdKafka::Headers::Header h("msg_id", curr_msg_id, sizeof(msg_id));
     RdKafka::Headers* msg_headers = RdKafka::Headers::create();
@@ -130,10 +133,12 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
       if (err == RdKafka::ERR_NO_ERROR) {
         std::cerr << "Produced successfully!\n";
         producer->poll(0);
+        //delete msg_headers;
+        break;
       } else {
 
         if (err != RdKafka::ERR__QUEUE_FULL) {
-          std::cerr << "Error producing!\n";
+          std::cerr << "Error producing!:" << err2str(err) << "\n";
           delete msg_headers;
           break;
         }
@@ -150,6 +155,7 @@ void KafkaProducerThread(bool& end, RdKafka::Conf* producer_config, const std::s
 void KafkaConsumerThread(bool& end, RdKafka::Conf* configure_consumer, const std::vector<std::string>& topic_names) {
   std::string error;
   RdKafka::KafkaConsumer* cons = RdKafka::KafkaConsumer::create(configure_consumer, error);
+  delete configure_consumer;
   if (!cons) {
     std::cerr << "Error creating consumer! " << error << std::endl;
     end = true;
@@ -163,7 +169,7 @@ void KafkaConsumerThread(bool& end, RdKafka::Conf* configure_consumer, const std
     if (!msg->err()) {
       std::cerr << "Consumed!\n";
       processResponce(msg);
-      std::cerr << static_cast<char*>(msg->payload()) << "\n";
+     // std::cerr << static_cast<char*>(msg->payload()) << "\n";
     } else {
       if (msg->err() != RdKafka::ErrorCode::ERR__TIMED_OUT) {
         std::cerr << "Error occured! " << msg->errstr() << "\n";
@@ -187,9 +193,11 @@ int main(int argc, char** argv) {
   MyDeliveryCallback cb_prod;
   if (producer_config->set("bootstrap.servers", "localhost:9092", err) != RdKafka::Conf::CONF_OK ||
       producer_config->set("dr_cb", &cb_prod, err) != RdKafka::Conf::CONF_OK ||
+      producer_config->set("message.max.bytes", "999999999", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("bootstrap.servers", "localhost:9092", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("group.id", "12321", err) != RdKafka::Conf::CONF_OK ||
-      consumer_config->set("message.max.bytes", "1000000000", err) != RdKafka::Conf::CONF_OK) {
+      consumer_config->set("message.max.bytes", "999999999", err) != RdKafka::Conf::CONF_OK ||
+      consumer_config->set("max.partition.fetch.bytes", "999999999", err) != RdKafka::Conf::CONF_OK) {
     std::cerr << "Conf failed! " << err << "\n";
     return 1;
   }
@@ -198,10 +206,9 @@ int main(int argc, char** argv) {
 
   std::vector<std::string> topics = {consumer_topic_name};
   std::this_thread::sleep_for(1000ms);
+  std::cout << "CNS!\n";
   std::thread cons_thread(&KafkaConsumerThread, std::ref(end), consumer_config, topics);
   cons_thread.join();
   prod_thread.join();
-  delete producer_config;
-  delete consumer_config;
   return 0;
 }
