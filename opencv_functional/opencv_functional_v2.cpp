@@ -49,12 +49,13 @@ cv::Scalar getColor() {
 }
 
 void getBlackMask(cv::Mat& img_hsv, cv::Mat& mask) {
-  // cv::cvtColor(img, mask, cv::COLOR_BGR2HSV);
   std::vector<uchar> lower = {0, 0, 5};
   std::vector<uchar> upper = {179, 255, 255};
   cv::inRange(img_hsv, lower, upper, mask);
-//  cv::imshow("W", mask);
-//  cv::waitKey();
+#ifdef DEBUG_GLOBAL
+  cv::imshow("W", mask);
+  cv::waitKey();
+#endif
 }
 
 std::vector<cv::Point> getBestLocations(cv::Mat& result, double best_value, double threshold = 0) {
@@ -116,8 +117,6 @@ void matchAndDraw(std::vector<cv::Mat>& examples,
     if (getMatrixMin(examples[i]) < 250)
       matchOnePictureToMany(examples[i], grayscaled, input_without_back, colors[i], input);
   }
-  //cv::imshow("W", input);
-  //cv::waitKey();
 }
 
 void getImageHistogram(cv::Mat& hsv_img, cv::Mat& hist) {
@@ -154,8 +153,8 @@ bool checkMatch(const std::tuple<double, double, double>& dists,
                 double max_dist3 = 0.05) {
   auto& [dist1, dist2, dist3] = dists;
   std::cout << dist1 << " " << dist2 << " " << dist3 << " " << "\n";
-  return dist2 <= max_dist2 && dist1 <= max_dist1 || dist1 <= max_dist2 && dist3 <= max_dist3
-      || dist2 <= max_dist1 && dist3 <= max_dist3;
+  return dist2 <= max_dist2 && dist1 <= max_dist1 || dist1 <= max_dist1 && dist3 <= max_dist3
+      || dist2 <= max_dist2 && dist3 <= max_dist3;
 }
 
 DSU getColorDSU(std::vector<cv::Mat>& colored,
@@ -163,20 +162,33 @@ DSU getColorDSU(std::vector<cv::Mat>& colored,
                 std::vector<cv::Mat>& hsvd,
                 std::vector<cv::Mat>& mask) {
   DSU color_matches(colored.size());
-  //cv::namedWindow("W1", cv::WINDOW_NORMAL);
-  //cv::namedWindow("W2", cv::WINDOW_NORMAL);
+#ifdef DEBUG_MATCH_SHAPE
+  cv::namedWindow("W1", cv::WINDOW_NORMAL);
+  cv::namedWindow("W2", cv::WINDOW_NORMAL);
+#endif
+  std::vector<std::vector<double>> sorted_stats;
+  std::vector<std::vector<std::vector<double>>> shape_tables;
   for (int i = 0; i < colored.size(); ++i) {
     for (int j = i + 1; j < colored.size(); ++j) {
       auto [corr, bha] = compareHistogram(hsvd[i], hsvd[j]);
       std::cout << "HIST:" << corr << " " << bha << std::endl;
-  //    cv::imshow("W1", colored[i]);
-  //    cv::imshow("W2", colored[j]);
-      // cv::waitKey();
-      if (corr >= 0.25 && bha <= 0.8) {
-        auto matches = getMatch(mask[i], mask[j]);
-        if (checkMatch(matches)) {
+#ifdef DEBUG_MATCH_SHAPE
+      cv::imshow("W1", colored[i]);
+    cv::imshow("W2", colored[j]);
+    cv::waitKey();
+#endif
+      if (corr >= 0.45 && bha <= 0.8) {
+        //auto matches = getMatch(mask[i], mask[j]);
+#ifdef DEBUG_MATCH_SHAPE
+        cv::imshow("W1", mask[i]);
+        cv::imshow("W2", mask[j]);
+        cv::waitKey();
+#endif
+        //if (checkMatch(matches)) {
           color_matches.Merge(i, j);
-        }
+//        } else {
+//          std::cout << "REGECTED MATCH\n";
+//        }
       }
     }
   }
@@ -197,21 +209,23 @@ std::vector<cv::Scalar> getColors(const DSU& color_dsu) {
 
 void processImage(cv::Mat& input) {
   cv::Mat in_copy = input.clone();
-  // gammaCorrection(input);
-  //cv::bitwise_not(input, input);
   cv::Mat hcv_input;
   cv::cvtColor(input, hcv_input, cv::COLOR_RGB2HSV);
-//  cv::namedWindow("W", cv::WINDOW_NORMAL);
-//  cv::imshow("W", hcv_input);
-//  cv::waitKey();
-//  cv::imshow("W", input);
-//  cv::waitKey();
+  cv::namedWindow("W", cv::WINDOW_NORMAL);
+#ifdef DEBUG_GLOBAL
+  cv::imshow("W", hcv_input);
+  cv::waitKey();
+  cv::imshow("W", input);
+  cv::waitKey();
+#endif
   cv::Mat black_mask;
   cv::Scalar lb(0, 0, 0);
-  cv::Scalar ub(179, 255, 40);
+  cv::Scalar ub(179, 255, 50);
   cv::inRange(hcv_input, lb, ub, black_mask);
-//  cv::imshow("W", black_mask);
-//  cv::waitKey();
+#ifdef DEBUG_GLOBAL
+  cv::imshow("W", black_mask);
+  cv::waitKey();
+#endif
 
   cv::Mat mask;
   cv::Mat res_hcv, res_bgr;
@@ -226,37 +240,35 @@ void processImage(cv::Mat& input) {
   cv::Scalar high_border = {179, 255, 255};
   cv::inRange(hcv_input, low_border, high_border, mask);
   mask += black_mask;
-  //cv::imshow("W", mask);
-  //cv::waitKey();
+#ifdef DEBUG_GLOBAL
+  cv::imshow("W", mask);
+  cv::waitKey();
+#endif
 
   cv::bitwise_and(input, input, res_bgr, mask);
-  //cv::bitwise_not(input, input, black_mask);
-  //cv::imshow("W", input);
-  //cv::waitKey();
   cv::cvtColor(input, hcv_input, cv::COLOR_BGR2HSV);
   cv::bitwise_and(hcv_input, hcv_input, res_hcv, mask);
-
-  //cv::imshow("W", res_hcv);
-  //cv::waitKey();
-  //cv::imshow("W", res_bgr);
-  //cv::waitKey();
+#ifdef DEBUG_GLOBAL
+  cv::imshow("W", input);
+  cv::waitKey();
+  cv::imshow("W", res_hcv);
+  cv::waitKey();
+  cv::imshow("W", res_bgr);
+  cv::waitKey();
+#endif
   std::vector<std::vector<cv::Point>> contours;
   cv::morphologyEx(mask, mask, cv::MORPH_DILATE, kernel);
   cv::morphologyEx(mask, mask, cv::MORPH_ERODE, kernel);
-  //cv::dilate(mask, mask, cv::MORPH_RECT);
-//  cv::imshow("W", mask);
-//  cv::waitKey();
-
-  //cv::morphologyEx(mask, mask, cv::MORPH_CLOSE, kernel);
   cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
   contours.erase(std::remove_if(contours.begin(),
                                 contours.end(),
                                 [rows = input.rows, cols = input.cols](const std::vector<cv::Point>& c1) {
                                   cv::RotatedRect r1 = cv::minAreaRect(c1);
                                   bool ret = false;
-                                  ret |= r1.size.area() <= 200;
-                                  ret |= r1.center.x <= 20 || r1.center.y <= 20 || r1.center.x >= cols - 20
-                                      || r1.center.y >= rows - 20;
+                                  ret |= r1.size.area() <= 0.001 * rows * cols;
+                                  ret |= r1.center.x <= 0.01 * cols || r1.center.y <= 0.01 * rows
+                                      || r1.center.x >= 0.99 * cols
+                                      || r1.center.y >= 0.99 * rows;
                                   return ret;
 
                                 }), contours.end());
@@ -274,39 +286,27 @@ void processImage(cv::Mat& input) {
     cv::RotatedRect min_enclosing = cv::minAreaRect(contours[i]);
     temp = res_bgr(square_bound);
     cv::Mat mask = cv::Mat::zeros(temp.size(), CV_8U);
-    //  mats[i].create(mask.size(), CV_8UC3);
-    //cv::boxPoints(min_enclosing, pts);
     min_enclosing.points(box.data());
     for (int i = 0; i < 4; ++i) {
       real_box[i].x = box[i].x + 1 - x_shift;
       real_box[i].y = box[i].y + 1 - y_shift;
     }
-    cv::imshow("W", temp);
-    //cv::waitKey();
     cv::fillConvexPoly(mask, real_box, cv::Scalar(255, 255, 255));
-    //cv::imshow("W", mask);
-    //cv::waitKey();
     cv::bitwise_and(temp, temp, mats[i], mask);
-    cv::imshow("W", mats[i]);
-//    cv::waitKey();
     cv::cvtColor(mats[i], gray_mats[i], cv::COLOR_RGB2GRAY);
-    //cv::imshow("W", gray_mats[i]);
-    //  cv::waitKey();
     cv::cvtColor(mats[i], hsv_mats[i], cv::COLOR_RGB2HSV);
     cv::threshold(gray_mats[i], masks[i], 1, 255, cv::THRESH_BINARY);
+#ifdef DEBUG_GLOBAL
+    cv::imshow("W", mats[i]);
+    cv::waitKey();
     cv::imshow("W", masks[i]);
-    //   cv::waitKey();
+    cv::waitKey();
+#endif
   }
-//  for (int i = 0; i < contours.size(); ++i) {
-//    cv::rectangle(input, cv::boundingRect(contours[i]), cv::Scalar(255, 0, 0));
-//  }
   std::cout << "CONTOURS.size: " << contours.size() << "\n";
-
-//  cv::imshow("W", res_bgr);
-//  cv::waitKey();
   DSU color_dsu = getColorDSU(mats, gray_mats, hsv_mats, masks);
   std::vector<cv::Scalar> colors = getColors(color_dsu);
-  for (auto& c : colors) {
+  for (auto& c: colors) {
     std::cout << "color " << c << "\n";
   }
   for (int i = 0; i < contours.size(); ++i) {
@@ -315,8 +315,10 @@ void processImage(cv::Mat& input) {
   cv::Mat gray_input;
   cv::cvtColor(res_bgr, gray_input, cv::COLOR_RGB2GRAY);
   matchAndDraw(gray_mats, res_bgr, gray_input, colors, in_copy);
+#ifdef DEBUG_RESULT
+  cv::imshow("W", in_copy);
+  cv::waitKey();
+#endif
   input = in_copy;
   std::cout << "FIN!\n";
- // cv::imshow("W", res_bgr);
-//  cv::waitKey();
 }

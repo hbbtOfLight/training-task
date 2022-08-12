@@ -9,9 +9,6 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <iterator>
-#include <opencv2/imgproc.hpp>
-#include <random>
-
 #include "opencv_functional_v2.h"
 
 
@@ -31,7 +28,7 @@ bool processConsumed(RdKafka::Message* prompt, cv::Mat& image) {
       if (last_id.err()) {
         std::cout << "No header msg_id\n";
       } else {
-        std::cout << "msg_id: " << *static_cast<const int*>(last_id.value()) << "\n";
+        std::cout << "msg_id: " << static_cast<const char*>(last_id.value()) << "\n";
       }
     }
     std::cout << "Consumed " << prompt->len() << " bytes. Starting processing\n";
@@ -44,7 +41,6 @@ bool processConsumed(RdKafka::Message* prompt, cv::Mat& image) {
     return true;
   }
   return true;
-
 }
 
 class myProduceCallback2 : public RdKafka::DeliveryReportCb {
@@ -88,7 +84,7 @@ bool getConfigFromFile(RdKafka::Conf* configuration, const std::string& filepath
   }
   cv::FileNode producer_node = fs[key];
   std::string error;
-  for (cv::FileNode n : producer_node) {
+  for (const cv::FileNode& n : producer_node) {
     std::string property = n.name(), value = static_cast<std::string>(producer_node[property]);
     if (configuration->set(property, value, error) != RdKafka::Conf::CONF_OK) {
       std::cerr << "Error setting configuration: " << error << "\n";
@@ -102,7 +98,7 @@ std::unordered_map<std::string, std::string> getTopicMap(const std::string& file
   std::unordered_map<std::string, std::string> topic_map;
   cv::FileStorage fs (filepath, cv::FileStorage::READ);
   cv::FileNode topics = fs["topic_map"];
-  for (cv::FileNode topic_node : topics) {
+  for (const cv::FileNode& topic_node : topics) {
     std::string consumer_topic = topic_node.name(), producer_topic = static_cast<std::string>(topics[consumer_topic]);
     topic_map[consumer_topic] = producer_topic;
     raw_topics.emplace_back(consumer_topic);
@@ -135,14 +131,11 @@ int main() {
     std::cerr << "Error creating producer and consumer! " << err << "\n";
     exit(1);
   }
-//  std::vector<RdKafka::Topic*> topics(raw_topics.size());
-//  RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
-//  for (int i = 0; i < topics.size(); ++i) {
-//    topics[i] = RdKafka::Topic::create(producer, raw_topics[i], topic_conf, err);
-//  }
-//  for (int i = 0; i < topics.size(); ++i) {
-//    delete topics[i];
-//  }
+  std::vector<RdKafka::Topic*> topics(raw_topics.size());
+  RdKafka::Conf* topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
+  for (int i = 0; i < topics.size(); ++i) {
+    topics[i] = RdKafka::Topic::create(producer, raw_topics[i], topic_conf, err);
+  }
   consumer->subscribe(raw_topics);
   while (true) {
     RdKafka::Message* my_msg = consumer->consume(1000);
@@ -153,12 +146,10 @@ int main() {
     std::string processed_topics = topic_map[my_msg->topic_name()];
     cv::Mat result;
     std::cout << "Processing..." << std::endl;
-    if (!processConsumed(my_msg, result)){
-      result = cv::imread("../../images_for_study/gyatime.jpg");
-    };
     std::vector<uchar> return_msg;
-    cv::imencode(".jpg", result, return_msg);
-  //  std::string return_msg = getReturnMsg();
+    if (processConsumed(my_msg, result)) {
+      cv::imencode(".jpg", result, return_msg);
+    }
     RdKafka::ErrorCode producer_error;
     do {
       producer->poll(0);
@@ -179,7 +170,9 @@ int main() {
       }
       producer->poll(0);
     } while (producer_error == RdKafka::ERR__QUEUE_FULL);
-
+  }
+  for (int i = 0; i < topics.size(); ++i) {
+    delete topics[i];
   }
 
   return 0;
