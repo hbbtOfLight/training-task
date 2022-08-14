@@ -23,9 +23,7 @@ void saveToFileSystem(std::vector<uchar>& byte_data, const std::string& path) {
     cv::imshow("window", frombytes_mat);
     cv::waitKey();
 #endif
-    if (frombytes_mat.rows != 0) {
       cv::imwrite(path, frombytes_mat);
-    }
   } catch (cv::Exception& e) {
     std::cerr << "Failed to decode image " << e.what() << "\n";
   } catch (...) {
@@ -200,7 +198,7 @@ int main(int argc, char** argv) {
       producer_config->set("dr_cb", &cb_prod, err) != RdKafka::Conf::CONF_OK ||
       producer_config->set("message.max.bytes", "999999999", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("bootstrap.servers", "localhost:9092", err) != RdKafka::Conf::CONF_OK ||
-      consumer_config->set("group.id", "12321", err) != RdKafka::Conf::CONF_OK ||
+      consumer_config->set("group.id", "2", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("message.max.bytes", "999999999", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("max.partition.fetch.bytes", "999999999", err) != RdKafka::Conf::CONF_OK) {
     std::cerr << "Conf failed! " << err << "\n";
@@ -225,6 +223,7 @@ int main(int argc, char** argv) {
 
   std::vector<std::string> topics = {consumer_topic_name};
   std::thread cons_thread(&KafkaConsumerThread, std::ref(end), consumer_config, topics);
+  delete processed_topic;
   cons_thread.join();
   prod_thread.join();
   return 0;

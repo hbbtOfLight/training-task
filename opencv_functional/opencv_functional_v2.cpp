@@ -122,7 +122,7 @@ void matchAndDraw(std::vector<cv::Mat>& examples,
 void getImageHistogram(cv::Mat& hsv_img, cv::Mat& hist) {
   cv::Mat mask;
   getBlackMask(hsv_img, mask);
-  static const int hist_sizes[] = {45, 65, 65};
+  static const int hist_sizes[] = {50, 65, 65};
   static const float range[] = {0.0, 256.0};
   static const float h_range[] = {0.0, 180.0};
 
@@ -177,7 +177,7 @@ DSU getColorDSU(std::vector<cv::Mat>& colored,
     cv::imshow("W2", colored[j]);
     cv::waitKey();
 #endif
-      if (corr >= 0.45 && bha <= 0.8) {
+      if (corr >= 0.5 && bha <= 0.66) {
         //auto matches = getMatch(mask[i], mask[j]);
 #ifdef DEBUG_MATCH_SHAPE
         cv::imshow("W1", mask[i]);
@@ -209,10 +209,12 @@ std::vector<cv::Scalar> getColors(const DSU& color_dsu) {
 
 void processImage(cv::Mat& input) {
   cv::Mat in_copy = input.clone();
+  cv::medianBlur(input, input, 3);
+  cv::GaussianBlur(input, input, cv::Size(7, 7), 0);
   cv::Mat hcv_input;
   cv::cvtColor(input, hcv_input, cv::COLOR_RGB2HSV);
-  cv::namedWindow("W", cv::WINDOW_NORMAL);
 #ifdef DEBUG_GLOBAL
+  cv::namedWindow("W", cv::WINDOW_NORMAL);
   cv::imshow("W", hcv_input);
   cv::waitKey();
   cv::imshow("W", input);
@@ -220,7 +222,7 @@ void processImage(cv::Mat& input) {
 #endif
   cv::Mat black_mask;
   cv::Scalar lb(0, 0, 0);
-  cv::Scalar ub(179, 255, 50);
+  cv::Scalar ub(180, 255, 40);
   cv::inRange(hcv_input, lb, ub, black_mask);
 #ifdef DEBUG_GLOBAL
   cv::imshow("W", black_mask);
@@ -232,12 +234,11 @@ void processImage(cv::Mat& input) {
   int rows = input.rows, cols = input.cols;
   int morph_rect_height = rows * 0.02, morph_rect_width = cols * 0.02;
   cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(morph_rect_height, morph_rect_width));
-  cv::medianBlur(hcv_input, hcv_input, 5);
 //  cv::morphologyEx(hcv_input, hcv_input, cv::MORPH_OPEN, kernel);
 //std::vector<uchar>
-  cv::Scalar low_border = {0, 50, 0};
+  cv::Scalar low_border = {0, 40, 0};
 //std::vector<uchar>
-  cv::Scalar high_border = {179, 255, 255};
+  cv::Scalar high_border = {180, 255, 255};
   cv::inRange(hcv_input, low_border, high_border, mask);
   mask += black_mask;
 #ifdef DEBUG_GLOBAL
@@ -265,7 +266,7 @@ void processImage(cv::Mat& input) {
                                 [rows = input.rows, cols = input.cols](const std::vector<cv::Point>& c1) {
                                   cv::RotatedRect r1 = cv::minAreaRect(c1);
                                   bool ret = false;
-                                  ret |= r1.size.area() <= 0.001 * rows * cols;
+                                  ret |= r1.size.area() <= 0.0005 * rows * cols;
                                   ret |= r1.center.x <= 0.01 * cols || r1.center.y <= 0.01 * rows
                                       || r1.center.x >= 0.99 * cols
                                       || r1.center.y >= 0.99 * rows;

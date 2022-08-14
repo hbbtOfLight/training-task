@@ -6,12 +6,17 @@
 #include <fstream>
 #include <chrono>
 #include <optional>
+#include <csignal>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <iterator>
 #include "opencv_functional_v2.h"
 
+static volatile std::sig_atomic_t run = 1;
 
+void handle_signal(int sig) {
+  run = 0;
+}
 void fetchImage(uchar* data_start, std::size_t size, cv::Mat& dest) {
   dest = cv::imdecode(cv::Mat(1, size * sizeof(uchar), CV_8UC1, data_start), cv::IMREAD_UNCHANGED);
 }
@@ -56,7 +61,7 @@ class myProduceCallback2 : public RdKafka::DeliveryReportCb {
         if (last_id.err()) {
           std::cout << "No header msg_id\n";
         } else {
-          std::cout << "msg_id: " << *static_cast<const int*>(last_id.value()) << "\n";
+          std::cout << "msg_id: " << static_cast<const char*>(last_id.value()) << "\n";
         }
       }
       std::cout << "Delivered " << msg.len() << " bytes" << std::endl;
@@ -108,9 +113,10 @@ std::unordered_map<std::string, std::string> getTopicMap(const std::string& file
 }
 
 int main() {
+  std::signal(SIGTERM, handle_signal);
+  std::signal(SIGINT, handle_signal);
   RdKafka::Conf* producer_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
   RdKafka::Conf* consumer_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
-  //writeFile();
   if (!getConfigFromFile(producer_conf, "../config.yaml", "producer")) {
     std::cerr << "Error while reading producer config!\n";
     exit(1);
@@ -137,7 +143,7 @@ int main() {
     topics[i] = RdKafka::Topic::create(producer, raw_topics[i], topic_conf, err);
   }
   consumer->subscribe(raw_topics);
-  while (true) {
+  while (run) {
     RdKafka::Message* my_msg = consumer->consume(1000);
     if (my_msg->err() || my_msg->len() == 0) {
       delete my_msg;
@@ -163,12 +169,14 @@ int main() {
                                          nullptr);
       if (producer_error == RdKafka::ErrorCode::ERR_NO_ERROR) {
         std::cout << "Response produced successfully!" << std::endl;
+        producer->poll(0);
+        //break;
       } else {
         if (producer_error != RdKafka::ErrorCode::ERR__QUEUE_FULL) {
           std::cout << "Error!" << err2str(producer_error) << "\n";
         }
       }
-      producer->poll(0);
+      producer->poll(1000);
     } while (producer_error == RdKafka::ERR__QUEUE_FULL);
   }
   for (int i = 0; i < topics.size(); ++i) {
