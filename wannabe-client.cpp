@@ -31,11 +31,6 @@ void saveToFileSystem(std::vector<uchar>& byte_data, const std::string& path) {
   }
 }
 
-//std::vector<uchar> getJpegEncodedImage(cv::Mat& imgmat) {
-//  std::vector<uchar> encoded;
-//
-//  return encoded;
-//}
 
 class MyDeliveryCallback : public RdKafka::DeliveryReportCb {
   void dr_cb(RdKafka::Message& msg) override {
@@ -146,7 +141,6 @@ void KafkaProducerThread(bool& end, RdKafka::Producer* producer, const std::stri
       producer->poll(1000);
     } while (err == RdKafka::ERR__QUEUE_FULL);
 
-    producer->poll(0);
   }
   delete producer;
 }
@@ -198,7 +192,7 @@ int main(int argc, char** argv) {
       producer_config->set("dr_cb", &cb_prod, err) != RdKafka::Conf::CONF_OK ||
       producer_config->set("message.max.bytes", "999999999", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("bootstrap.servers", "localhost:9092", err) != RdKafka::Conf::CONF_OK ||
-      consumer_config->set("group.id", "2", err) != RdKafka::Conf::CONF_OK ||
+      consumer_config->set("group.id", "3", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("message.max.bytes", "999999999", err) != RdKafka::Conf::CONF_OK ||
       consumer_config->set("max.partition.fetch.bytes", "999999999", err) != RdKafka::Conf::CONF_OK) {
     std::cerr << "Conf failed! " << err << "\n";

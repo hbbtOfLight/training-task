@@ -63,7 +63,7 @@ double getMatrixMin(cv::Mat& result) {
   return minval;
 }
 
-void getImageHistogram(const cv::Mat& hsv_img, const cv::Mat& hist) {
+void getImageHistogram(cv::Mat& hsv_img, cv::Mat& hist) {
   cv::Mat mask;
   getBlackMask(hsv_img, mask);
   static const int hist_sizes[] = {50, 65, 65};
@@ -76,7 +76,7 @@ void getImageHistogram(const cv::Mat& hsv_img, const cv::Mat& hist) {
   cv::normalize(hist, hist, 1, 0, cv::NORM_MINMAX);
 }
 
-std::pair<double, double> compareHistogram(const cv::Mat& img1_hsv, const cv::Mat& img2_hsv) {
+std::pair<double, double> compareHistogram(cv::Mat& img1_hsv, cv::Mat& img2_hsv) {
   cv::Mat hist1, hist2;
   getImageHistogram(img1_hsv, hist1);
   getImageHistogram(img2_hsv, hist2);
@@ -84,7 +84,7 @@ std::pair<double, double> compareHistogram(const cv::Mat& img1_hsv, const cv::Ma
   return {cv::compareHist(hist1, hist2, cv::HISTCMP_CORREL), cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA)};
 }
 
-DSU getColorDSU(const std::vector<cv::Mat>& hsvd) {
+DSU getColorDSU(std::vector<cv::Mat>& hsvd) {
   DSU color_matches(hsvd.size());
   std::vector<std::vector<double>> sorted_stats;
   std::vector<std::vector<std::vector<double>>> shape_tables;

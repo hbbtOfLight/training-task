@@ -94,7 +94,6 @@ bool getConfigFromFile(RdKafka::Conf* configuration, const std::string& filepath
     if (configuration->set(property, value, error) != RdKafka::Conf::CONF_OK) {
       std::cerr << "Error setting configuration: " << error << "\n";
     }
-    std::cout << property << ":" << value  << "\n";
   }
   return true;
 }
