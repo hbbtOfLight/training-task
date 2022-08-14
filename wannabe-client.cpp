@@ -116,7 +116,7 @@ void KafkaProducerThread(bool& end, RdKafka::Producer* producer, const std::stri
     std::string header = std::to_string(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())) + "-"
         + std::to_string(msg_id++);
     char* curr_msg_id = header.data();
-    std::cout << curr_msg_id << "\n";;
+    std::cout << curr_msg_id << "\n";
     RdKafka::Headers::Header h("msg_id", curr_msg_id, sizeof(char) * header.size());
     RdKafka::Headers* msg_headers = RdKafka::Headers::create();
     msg_headers->add(h);

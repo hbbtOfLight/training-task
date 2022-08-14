@@ -5,7 +5,7 @@ producer:
   message.max.bytes: "999999999"
 consumer:
   bootstrap.servers: "localhost:9092"
-  group.id: "2"
+  group.id: "4"
   fetch.message.max.bytes: "999999999"
   max.partition.fetch.bytes: "999999999"
   receive.message.max.bytes: "999999999"
